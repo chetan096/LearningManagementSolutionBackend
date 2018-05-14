@@ -15,4 +15,4 @@ app.use('/',express.static(path.join(__dirname,'../public')))
 app.use('/', indexRoute); // it will mount index.js on this path
 
 // listen on 8000 port number of local host
-app.listen(8000,()=>console.log("server started at 8000"));
+app.listen(process.env.PORT || 8000,()=>console.log("server started at 8000"));
