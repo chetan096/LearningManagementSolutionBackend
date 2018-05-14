@@ -1,0 +1,21 @@
+{
+  "name": "learningmanagementsolution",
+  "version": "1.0.0",
+  "description": "Learning Management App",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "tsc && node out/server.js",
+    "serve": "nodemon out/server.js"
+  },
+  "author": "chetan mahajan",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.16.3",
+    "sequelize": "^4.37.7"
+  },
+  "devDependencies": {
+    "@types/express": "^4.11.1",
+    "@types/sequelize": "^4.27.17"
+  }
+}
