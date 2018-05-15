@@ -4,11 +4,12 @@ import courseRoute from './courses';
 import studentRoute from './students'
 import subjectRoute from './subjects'
 import teacherRoute from './teachers'
+import batchRoute from './batches'
 
 const route:Router=Router();
 
 const routes={
-   courseRoute,studentRoute,subjectRoute,teacherRoute
+   courseRoute,studentRoute,subjectRoute,teacherRoute,batchRoute
 }
 
 //will mount courses  on this url
@@ -19,6 +20,8 @@ route.use('/teachers',routes.teacherRoute);
 route.use('/students',routes.studentRoute);
 //will mount subjects  on this url
 route.use('/subjects',routes.subjectRoute);
+
+route.use('/',routes.batchRoute)
 
 //export this route
 export default route

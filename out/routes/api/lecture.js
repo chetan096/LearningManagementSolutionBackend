@@ -23,6 +23,9 @@ route.get('/', function (req, res) {
         if (batch) {
             console.log("got batch");
             db_1._Lecture.findAll({
+                where: {
+                    batchId: batchId
+                },
                 include: [
                     {
                         model: db_1._Subject
@@ -45,7 +48,7 @@ route.get('/', function (req, res) {
             });
         }
         else {
-            res.status(200).send({
+            res.status(403).send({
                 error: 'No batch found for corresponding  course id',
                 status: false
             });
@@ -81,16 +84,37 @@ route.post('/', function (req, res) {
         }
     }).then(function (batch) {
         if (batch) {
-            db_1._Lecture.create({
-                name: lectureName,
-                batchId: batchId,
-                teacherId: teacherId,
-                subjectId: subjectId
-            }).then(function (lecture) {
-                res.status(201).send({
-                    lecture: lecture,
-                    status: true
-                });
+            db_1._Teacher.findOne({
+                where: {
+                    subjectId: subjectId,
+                    id: teacherId
+                }
+            }).then(function (data) {
+                if (!data) {
+                    res.status(403).send({
+                        error: 'No teacher found for subject id ' + subjectId,
+                        status: false
+                    });
+                }
+                else {
+                    db_1._Lecture.create({
+                        name: lectureName,
+                        batchId: batchId,
+                        teacherId: teacherId,
+                        subjectId: subjectId
+                    }).then(function (lecture) {
+                        res.status(201).send({
+                            lecture: lecture,
+                            status: true
+                        });
+                    }).catch(function (err) {
+                        console.log(err);
+                        res.status(503).send({
+                            error: 'Error while adding new lecture',
+                            status: false
+                        });
+                    });
+                }
             }).catch(function (err) {
                 console.log(err);
                 res.status(503).send({
@@ -215,7 +239,7 @@ route.delete('/:lectureId', function (req, res) {
             });
         }
         else {
-            res.status(200).send({
+            res.status(403).send({
                 error: 'No batch found for corresponding  course id',
                 status: false
             });

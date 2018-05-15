@@ -12,6 +12,21 @@ import { ITeacher } from '../../models/teacher';
 
 const route: Router = Router({ mergeParams: true });
 
+route.get('/batches',(req:Request,res:Response)=>{
+    _Batch.findAll().then((data:IBatch[])=>{
+            res.status(200).send({
+                batches:data,
+                status:true
+            })
+    }).catch((err: Error) => {
+       console.log(err)
+       res.status(503).send({
+           error: 'Error while getting course',
+           status: false
+       })
+   })
+})
+
 //get all batch from the db
 route.get('/', (req: Request, res: Response) => {
     let courseId: number = req.params.id;
@@ -41,6 +56,7 @@ route.get('/', (req: Request, res: Response) => {
     })
 
 })
+
 
 //add new batch pass batchname as body parameter
 route.post('/', (req: Request, res: Response) => {
@@ -253,26 +269,39 @@ route.get('/:batchId/students', (req: Request, res: Response) => {
               StudentBatch.findAll({
                   where:{
                       batchId:batchId
+                  },
+                  include:[
+                  {
+                      model:_Student
+                  },
+                  {
+                      model:_Batch
                   }
+                ]
+
               }).then((data:any)=>{
-                    let studentId:number[]=[];
-                    for(let item of data){
-                        studentId.push(item.studentId);
-                    }
-                    _Student.findAll({
-                        where:{
-                            id:{$in:studentId}
-                        }
-                    }).then((students:IStudent[])=>{
-                        res.status(200).send({
-                            students:students,
-                            status:true
-                        })
-                    }).catch((err:Error)=>{
-                        res.status(503).send({
-                            error:'Error getting students',
-                            status:false
-                        })
+                    // let studentId:number[]=[];
+                    // for(let item of data){
+                    //     studentId.push(item.studentId);
+                    // }
+                    // _Student.findAll({
+                    //     where:{
+                    //         id:{$in:studentId}
+                    //     }
+                    // }).then((students:IStudent[])=>{
+                    //     res.status(200).send({
+                    //         students:students,
+                    //         status:true
+                    //     })
+                    // }).catch((err:Error)=>{
+                    //     res.status(503).send({
+                    //         error:'Error getting students',
+                    //         status:false
+                    //     })
+                    // })
+                    res.status(200).send({
+                        students:data,
+                        status:true
                     })
               }).catch((err:Error)=>{
                   res.status(503).send({
@@ -358,6 +387,8 @@ route.get('/:batchId/teachers', (req: Request, res: Response) => {
     })
 
 })
+
+
 
 route.use('/:batchId/lectures', lectureRoute)
 

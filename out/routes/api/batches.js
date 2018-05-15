@@ -9,6 +9,20 @@ var courseUrlValidators_1 = require("../../validators/courseUrlValidators");
 var db_2 = require("../../db");
 var lecture_1 = __importDefault(require("./lecture"));
 var route = express_1.Router({ mergeParams: true });
+route.get('/batches', function (req, res) {
+    db_2._Batch.findAll().then(function (data) {
+        res.status(200).send({
+            batches: data,
+            status: true
+        });
+    }).catch(function (err) {
+        console.log(err);
+        res.status(503).send({
+            error: 'Error while getting course',
+            status: false
+        });
+    });
+});
 //get all batch from the db
 route.get('/', function (req, res) {
     var courseId = req.params.id;
@@ -233,27 +247,38 @@ route.get('/:batchId/students', function (req, res) {
             db_1.StudentBatch.findAll({
                 where: {
                     batchId: batchId
-                }
-            }).then(function (data) {
-                var studentId = [];
-                for (var _i = 0, data_1 = data; _i < data_1.length; _i++) {
-                    var item = data_1[_i];
-                    studentId.push(item.studentId);
-                }
-                db_1._Student.findAll({
-                    where: {
-                        id: { $in: studentId }
+                },
+                include: [
+                    {
+                        model: db_1._Student
+                    },
+                    {
+                        model: db_2._Batch
                     }
-                }).then(function (students) {
-                    res.status(200).send({
-                        students: students,
-                        status: true
-                    });
-                }).catch(function (err) {
-                    res.status(503).send({
-                        error: 'Error getting students',
-                        status: false
-                    });
+                ]
+            }).then(function (data) {
+                // let studentId:number[]=[];
+                // for(let item of data){
+                //     studentId.push(item.studentId);
+                // }
+                // _Student.findAll({
+                //     where:{
+                //         id:{$in:studentId}
+                //     }
+                // }).then((students:IStudent[])=>{
+                //     res.status(200).send({
+                //         students:students,
+                //         status:true
+                //     })
+                // }).catch((err:Error)=>{
+                //     res.status(503).send({
+                //         error:'Error getting students',
+                //         status:false
+                //     })
+                // })
+                res.status(200).send({
+                    students: data,
+                    status: true
                 });
             }).catch(function (err) {
                 res.status(503).send({
@@ -302,8 +327,8 @@ route.get('/:batchId/teachers', function (req, res) {
                 }
             }).then(function (data) {
                 var teacherIds = [];
-                for (var _i = 0, data_2 = data; _i < data_2.length; _i++) {
-                    var item = data_2[_i];
+                for (var _i = 0, data_1 = data; _i < data_1.length; _i++) {
+                    var item = data_1[_i];
                     teacherIds.push(item.teacherId);
                 }
                 db_1._Teacher.findAll({

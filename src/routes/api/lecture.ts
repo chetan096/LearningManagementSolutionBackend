@@ -26,6 +26,9 @@ route.get('/', (req: Request, res: Response) => {
         if (batch) {
             console.log("got batch")
             _Lecture.findAll({
+                where: {
+                    batchId: batchId
+                },
                 include: [
                     {
                         model: _Subject
@@ -48,7 +51,7 @@ route.get('/', (req: Request, res: Response) => {
             })
         }
         else {
-            res.status(200).send({
+            res.status(403).send({
                 error: 'No batch found for corresponding  course id',
                 status: false
             })
@@ -90,23 +93,45 @@ route.post('/', (req: Request, res: Response) => {
         }
     }).then((batch: any) => {
         if (batch) {
-            _Lecture.create({
-                name: lectureName,
-                batchId: batchId,
-                teacherId: teacherId,
-                subjectId: subjectId
+            _Teacher.findOne({
+                where: {
+                    subjectId: subjectId,
+                    id:teacherId
+                }
+            }).then((data) => {
+                if (!data) {
+                    res.status(403).send({
+                        error: 'No teacher found for subject id ' + subjectId,
+                        status: false
+                    })
+                }
+                else {
+                    _Lecture.create({
+                        name: lectureName,
+                        batchId: batchId,
+                        teacherId: teacherId,
+                        subjectId: subjectId
 
-            }).then((lecture) => {
-                res.status(201).send({
-                    lecture: lecture,
-                    status: true
-                })
+                    }).then((lecture) => {
+                        res.status(201).send({
+                            lecture: lecture,
+                            status: true
+                        })
+                    }).catch((err) => {
+                        console.log(err)
+                        res.status(503).send({
+                            error: 'Error while adding new lecture',
+                            status: false
+                        })
+                    })
+                }
             }).catch((err) => {
                 console.log(err)
                 res.status(503).send({
                     error: 'Error while adding new lecture',
                     status: false
                 })
+
             })
         }
         else {
@@ -233,7 +258,7 @@ route.delete('/:lectureId', (req: Request, res: Response) => {
             })
         }
         else {
-            res.status(200).send({
+            res.status(403).send({
                 error: 'No batch found for corresponding  course id',
                 status: false
             })
@@ -249,8 +274,8 @@ route.delete('/:lectureId', (req: Request, res: Response) => {
 
 //update lecture name of the lecture with the passed id in the url
 route.put('/:lectureId', (req: Request, res: Response) => {
-    if (!(courseIdValidator(req.params.id) && courseIdValidator(req.params.batchId) &&courseNameValidator(req.body.lectureName)&& 
-    courseIdValidator(req.params.lectureId))) {
+    if (!(courseIdValidator(req.params.id) && courseIdValidator(req.params.batchId) && courseNameValidator(req.body.lectureName) &&
+        courseIdValidator(req.params.lectureId))) {
         return res.status(403).send({
             error: 'Course  or Batch id is invalid ',
             status: false
@@ -259,35 +284,35 @@ route.put('/:lectureId', (req: Request, res: Response) => {
     const courseId: number = parseInt(req.params.id);
     const batchId: number = parseInt(req.params.batchId);
     const lectureId: number = parseInt(req.params.lectureId);
-    const lectureName:string=req.body.lectureName;
+    const lectureName: string = req.body.lectureName;
 
     _Batch.findOne({
         where: {
             id: batchId,
             courseId: courseId
         }
-    }).then((batch:any) => {
+    }).then((batch: any) => {
         if (batch) {
             _Lecture.find({
                 where: {
                     id: lectureId
                 }
-            }).then((lecture:any) => {
+            }).then((lecture: any) => {
                 lecture.update({
-                    name:lectureName
-                }).then((updatedLecture:any)=>{
+                    name: lectureName
+                }).then((updatedLecture: any) => {
                     res.status(200).send({
-                        lecture:updatedLecture,
+                        lecture: updatedLecture,
                         status: true,
                         message: 'updated successfully'
                     })
-                }).catch((err:Error)=>{
+                }).catch((err: Error) => {
                     res.status(503).send({
                         error: 'Error updating the lecture',
                         status: false
                     })
                 })
-                
+
             }).catch((err: Error) => {
                 res.status(503).send({
                     error: 'Error updating the lecture',

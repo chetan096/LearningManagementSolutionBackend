@@ -7,7 +7,9 @@ const route: Router = Router({ mergeParams: true });
 
 //will get all students
 route.get('/', (req: Request, res: Response) => {
-    _Student.findAll().then((students: IStudent[]) => res.status(200).send({
+    _Student.findAll({
+        include:[_Batch]
+    }).then((students: IStudent[]) => res.status(200).send({
         students: students,
         status: true
     })).catch((err: Error) => {
@@ -175,21 +177,43 @@ route.post('/:id/batches', (req: Request, res: Response) => {
     }
     const studentId: number = parseInt(req.params.id)
     const batchId: number = parseInt(body.batchId);
-    StudentBatch.create({
-        batchId: batchId,
-        studentId: studentId
+    StudentBatch.findOne({
+        where: {
+            studentId: studentId,
+            batchId: batchId
+        }
     }).then((data) => {
-        res.status(201).send({
-            data: data,
-            status: true
-        })
+        if (data) {
+            return res.status(403).send({
+                error: 'Already enrolled',
+                status:false
+            })
+        }
+        else {
+            StudentBatch.create({
+                batchId: batchId,
+                studentId: studentId
+            }).then((data) => {
+                res.status(201).send({
+                    data: data,
+                    status: true
+                })
+            }).catch((err: Error) => {
+                console.log(err)
+                res.status(503).send({
+                    error: 'Error adding student into batch',
+                    status: false
+                })
+            })
+        }
     }).catch((err: Error) => {
         console.log(err)
         res.status(503).send({
-            error: 'Error adding batch ',
+            error: 'Error adding students into  batch ',
             status: false
         })
     })
+
 })
 
 export default route;

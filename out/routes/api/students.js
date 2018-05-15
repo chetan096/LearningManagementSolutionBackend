@@ -6,7 +6,9 @@ var courseUrlValidators_1 = require("../../validators/courseUrlValidators");
 var route = express_1.Router({ mergeParams: true });
 //will get all students
 route.get('/', function (req, res) {
-    db_1._Student.findAll().then(function (students) { return res.status(200).send({
+    db_1._Student.findAll({
+        include: [db_1._Batch]
+    }).then(function (students) { return res.status(200).send({
         students: students,
         status: true
     }); }).catch(function (err) {
@@ -167,18 +169,39 @@ route.post('/:id/batches', function (req, res) {
     }
     var studentId = parseInt(req.params.id);
     var batchId = parseInt(body.batchId);
-    db_1.StudentBatch.create({
-        batchId: batchId,
-        studentId: studentId
+    db_1.StudentBatch.findOne({
+        where: {
+            studentId: studentId,
+            batchId: batchId
+        }
     }).then(function (data) {
-        res.status(201).send({
-            data: data,
-            status: true
-        });
+        if (data) {
+            return res.status(403).send({
+                error: 'Already enrolled',
+                status: false
+            });
+        }
+        else {
+            db_1.StudentBatch.create({
+                batchId: batchId,
+                studentId: studentId
+            }).then(function (data) {
+                res.status(201).send({
+                    data: data,
+                    status: true
+                });
+            }).catch(function (err) {
+                console.log(err);
+                res.status(503).send({
+                    error: 'Error adding student into batch',
+                    status: false
+                });
+            });
+        }
     }).catch(function (err) {
         console.log(err);
         res.status(503).send({
-            error: 'Error adding batch ',
+            error: 'Error adding students into  batch ',
             status: false
         });
     });
